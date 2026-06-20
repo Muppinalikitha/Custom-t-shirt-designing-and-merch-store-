@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom T-Shirt Studio Pro</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --accent: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+        /* Navigation */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: var(--panel); border-bottom: 1px solid var(--border); }
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    
+    /* 1. Fallback color for old browsers so the text stays visible */
+    color: #6366f1; 
+    
+    /* 2. Define the background gradient */
+    background: linear-gradient(to right, #6366f1, #a855f7);
+    
+    /* 3. Clip the background canvas to the text silhouette */
+    -webkit-background-clip: text;
+    background-clip: text; /* Standard version */
+    
+    /* 4. Make the original text color invisible so the background shows through */
+    -webkit-text-fill-color: transparent; 
+}        .nav-links button { background: transparent; border: none; color: var(--text-muted); cursor: pointer; margin-left: 1.5rem; font-size: 1rem; transition: color 0.3s; }
+        .nav-links button:hover, .nav-links button.active { color: var(--primary); }
+
+        /* View Management */
+        .view-section { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; animation: fadeIn 0.4s ease-in-out forwards; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Auth Screen */
+        .auth-container { max-width: 450px; margin: 4rem auto; background: var(--panel); padding: 2.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        h2 { margin-bottom: 1.5rem; font-size: 1.8rem; text-align: center; }
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+        input, select { width: 100%; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 1rem; transition: border 0.3s; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+        .radio-group { display: flex; gap: 1rem; margin-top: 0.5rem; }
+        .radio-label { display: flex; align-items: center; gap: 0.25rem; cursor: pointer; }
+        .radio-label input { width: auto; }
+        button.btn-main { width: 100%; padding: 0.75rem; background: var(--primary); border: none; border-radius: 6px; color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.3s; margin-top: 1rem; }
+        button.btn-main:hover { background: var(--primary-hover); }
+        .switch-auth { text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.9rem; }
+        .switch-auth span { color: var(--primary); cursor: pointer; text-decoration: underline; }
+
+        /* Studio Customizer Canvas Layout */
+        .studio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem; }
+        @media (max-width: 768px) { .studio-grid { grid-template-columns: 1fr; } }
+        
+        .canvas-container { background: #1e293b; border-radius: 12px; border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; padding: 2rem; position: relative; min-height: 500px; }
+        .tshirt-mockup { width: 360px; height: 400px; position: relative; display: flex; justify-content: center; align-items: center; }
+        .tshirt-svg { width: 100%; height: 100%; fill: #ffffff; transition: all 0.3s ease; filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.4)); }
+        
+        .design-overlay { position: absolute; top: 25%; width: 45%; height: 45%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; pointer-events: none; overflow: hidden; }
+        .canvas-text { font-size: 1.4rem; color: #000; font-weight: bold; width: 100%; line-height: 1.2; word-break: break-word; margin-bottom: 0.25rem; }
+        .canvas-subtext { font-size: 0.9rem; color: #000; width: 100%; word-break: break-word; margin-top: 0.25rem; }
+        .canvas-graphic { max-width: 50px; max-height: 50px; font-size: 2rem; margin: 0.25rem 0; display: none; }
+
+        .control-panel { background: var(--panel); border-radius: 12px; border: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; gap: 1.2rem; max-height: 750px; overflow-y: auto; }
+        .color-palette { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.3rem; }
+        .color-swatch { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
+        .color-swatch.active { border-color: var(--text); transform: scale(1.15); }
+        
+        /* Grid selectors for Sizes & Models */
+        .selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.3rem; }
+        .selector-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.6rem; text-align: center; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+        .selector-btn.active { border-color: var(--primary); background: rgba(99, 102, 241, 0.15); color: white; }
+
+        .btn-group { display: flex; gap: 1rem; margin-top: 1rem; }
+        .btn-sec { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-sec:hover { background: var(--border); }
+
+        /* Cart & Profile View */
+        .cart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+        @media (max-width: 768px) { .cart-grid { grid-template-columns: 1fr; } }
+        .profile-card { background: var(--panel); border: 1px solid var(--border); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; }
+        .cart-items { display: flex; flex-direction: column; gap: 1rem; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; background: var(--panel); border: 1px solid var(--border); padding: 1rem; border-radius: 8px; }
+        .cart-item-info { display: flex; align-items: center; gap: 1rem; }
+        .mini-preview { width: 55px; height: 55px; border-radius: 6px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.4rem; font-weight: bold; }
+
+        /* Checkout Form */
+        .checkout-container { max-width: 600px; margin: 2rem auto; background: var(--panel); border: 1px solid var(--border); padding: 2.5rem; border-radius: 12px; }
+        .payment-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+        .pay-method-opt { border: 1px solid var(--border); padding: 1rem; text-align: center; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; }
+        .pay-method-opt.selected { border-color: var(--primary); background: rgba(99, 102, 241, 0.1); }
+        .conditional-payment { display: none; margin-top: 1rem; }
+        .conditional-payment.active { display: block; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Creepster&family=Fascinate&family=Montserrat:wght@700&family=Playfair+Display:ital,wght@1,600&family=Roboto+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav>
+        <div class="logo">🎽 StudioFit Custom Pro</div>
+        <div class="nav-links" id="navLinks" style="display: none;">
+            <button id="navStudio" onclick="switchView('studioView')" class="active">Studio Designer</button>
+            <button id="navCart" onclick="switchView('cartView')">My Gallery & Cart (<span id="cartCount">0</span>)</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <section id="authView" class="view-section active">
+        <div class="auth-container" id="signUpForm">
+            <h2>Create Account</h2>
+            <form onsubmit="handleAuth(event, 'signup')">
+                <div class="form-group"><label>First Name</label><input type="text" required id="regFirst"></div>
+                <div class="form-group"><label>Last Name</label><input type="text" required id="regLast"></div>
+                <div class="form-group"><label>Email Address</label><input type="email" required id="regEmail"></div>
+                <div class="form-group"><label>Phone Number</label><input type="tel" required id="regPhone"></div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <div class="radio-group">
+                        <label class="radio-label"><input type="radio" name="gender" value="Male" checked> Male</label>
+                        <label class="radio-label"><input type="radio" name="gender" value="Female"> Female</label>
+                        <label class="radio-label"><input type="radio" name="gender" value="Other"> Other</label>
+                    </div>
+                </div>
+                <div class="form-group"><label>Password</label><input type="password" required id="regPass"></div>
+                <button type="submit" class="btn-main">Sign Up</button>
+            </form>
+            <p class="switch-auth">Already have an account? <span onclick="toggleAuthForms(true)">Sign In</span></p>
+        </div>
+
+        <div class="auth-container" id="signInForm" style="display: none;">
+            <h2>Welcome Back</h2>
+            <form onsubmit="handleAuth(event, 'signin')">
+                <div class="form-group"><label>Email Address</label><input type="email" required id="loginEmail"></div>
+                <div class="form-group"><label>Password</label><input type="password" required id="loginPass"></div>
+                <button type="submit" class="btn-main">Sign In</button>
+            </form>
+            <p class="switch-auth">New to StudioFit? <span onclick="toggleAuthForms(false)">Sign Up</span></p>
+        </div>
+    </section>
+
+    <section id="studioView" class="view-section">
+        <h2>Design Workspace Canvas</h2>
+        <div class="studio-grid">
+            <div class="canvas-container">
+                <div class="tshirt-mockup" id="tshirtMockup">
+                    <svg class="tshirt-svg" id="tshirtSvgShape" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <path id="modelPath" d="M 20,10 L 32,2 L 42,12 C 45,10 55,10 58,12 L 68,2 L 80,10 L 76,28 L 70,27 L 70,95 L 30,95 L 30,27 L 24,28 Z" stroke="#334155" stroke-width="0.8"/>
+                    </svg>
+                    <div class="design-overlay">
+                        <div class="canvas-text" id="canvasTextDisplay">MAIN TITLE</div>
+                        <div class="canvas-graphic" id="canvasGraphicDisplay">⭐</div>
+                        <div class="canvas-subtext" id="canvasSubtextDisplay">Sub-headline details</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <h3>Customization Matrix</h3>
+                
+                <div>
+                    <label>Select Merchandise Garment Model</label>
+                    <div class="selector-grid" id="modelSelectors">
+                        <div class="selector-btn active" onclick="setModel('crewneck')">Crewneck</div>
+                        <div class="selector-btn" onclick="setModel('vneck')">V-Neck Design</div>
+                        <div class="selector-btn" onclick="setModel('hoodie')">Streetwear Hoodie</div>
+                        <div class="selector-btn" onclick="setModel('oversized')">Oversized Fit</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label>Target Fit Fitment Size</label>
+                    <div class="selector-grid" id="sizeSelectors">
+                        <div class="selector-btn" onclick="setSize('S')">S</div>
+                        <div class="selector-btn" onclick="setSize('M')">M</div>
+                        <div class="selector-btn active" onclick="setSize('L')">L</div>
+                        <div class="selector-btn" onclick="setSize('XL')">XL</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label>T-Shirt Base Color Coat</label>
+                    <div class="color-palette" id="shirtColors"></div>
+                </div>
+
+                <div>
+                    <label>Graphic Stamp Asset Overlay</label>
+                    <select id="designSelect" onchange="updateDesign()">
+                        <option value="none">None / Empty Space</option>
+                        <option value="⭐">Minimal Starburst</option>
+                        <option value="⚡">High-Voltage Bolt</option>
+                        <option value="❤️">Classic Heart Crest</option>
+                        <option value="☠️">Outlaw Retro Skull</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Primary Headlining Inscription Line</label>
+                    <input type="text" id="customTextInput" value="MAIN TITLE" oninput="updateDesign()">
+                </div>
+                <div>
+                    <label>Secondary Sub-Headline Text Line</label>
+                    <input type="text" id="customSubtextInput" value="Sub-headline details" oninput="updateDesign()">
+                </div>
+
+                <div>
+                    <label>Typography Font Family Profiling</label>
+                    <select id="fontSelect" onchange="updateDesign()">
+                        <option value="'Montserrat', sans-serif">Modernist Bold Clean (Montserrat)</option>
+                        <option value="'Playfair Display', serif">Elegant High-Fashion Serif (Playfair)</option>
+                        <option value="'Roboto Mono', monospace">Cyberpunk Tech Code (Roboto Mono)</option>
+                        <option value="'Bangers', cursive">Vintage Pop-Art Comic (Bangers)</option>
+                        <option value="'Creepster', system-ui">Aggressive Distress Grunge (Creepster)</option>
+                        <option value="'Fascinate', display">Art-Deco Retro Luxury (Fascinate)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Typographical Text Print Inking Color</label>
+                    <div class="color-palette" id="textColors"></div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-main" onclick="addToCart()">Add Custom Asset To Cart</button>
+                    <button class="btn-main btn-sec" onclick="directPayNow()">Instant Express Checkout</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="cartView" class="view-section">
+        <div class="cart-grid">
+            <div>
+                <h3>User Identity Authentication Profile</h3>
+                <div class="profile-card" id="profileDisplay"></div>
+                
+                <h3>Your Interactive Cart Blueprint Stack</h3>
+                <div class="cart-items" id="cartContainer"></div>
+            </div>
+            <div class="profile-card" style="height: fit-content;">
+                <h3>Cart Evaluation Summary Matrix</h3>
+                <hr style="border-color: var(--border); margin: 1rem 0;">
+                <p style="display: flex; justify-content: space-between;"><span>Accumulated Items Total</span> <span id="summaryTotal">$0.00</span></p>
+                <button class="btn-main" id="checkoutBtn" onclick="switchView('checkoutView')" style="margin-top: 1.5rem;" disabled>Proceed to Secure Checkout Gate</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="checkoutView" class="view-section">
+        <div class="checkout-container">
+            <h2>Secure Gateway Order Processing Hub</h2>
+            <form onsubmit="processPayment(event)">
+                <div class="form-group"><label>Destination Delivery Shipping Address</label><input type="text" required placeholder="Street Location, Building suite, Postal ZIP Code"></div>
+                
+                <label>Select Secure Payment Framework Channel</label>
+                <div class="payment-methods">
+                    <div class="pay-method-opt" id="payPaytm" onclick="selectPayment('paytm')">Paytm Wallet Link</div>
+                    <div class="pay-method-opt" id="payPhonePe" onclick="selectPayment('phonepe')">PhonePe UPI Gateway</div>
+                    <div class="pay-method-opt" id="payCard" onclick="selectPayment('card')">Secure Credit/Debit Engine</div>
+                </div>
+
+                <div id="upiField" class="conditional-payment">
+                    <div class="form-group"><label>Registered Wallet Account Associated Mobile Number</label><input type="tel" id="upiPhone" placeholder="eg. +91 98765-43210"></div>
+                </div>
+
+                <div id="cardFields" class="conditional-payment">
+                    <div class="form-group"><label>Cardholder Legal Full Name</label><input type="text" id="cardName" placeholder="Jane Doe"></div>
+                    <div class="form-group"><label>Primary Card PAN Account Number</label><input type="text" id="cardNumber" placeholder="4111 - 2222 - 3333 - 4444"></div>
+                    <div style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex:1;"><label>Expiry Validation Matrix</label><input type="text" id="cardExpiry" placeholder="MM / YY"></div>
+                        <div class="form-group" style="flex:1;"><label>CVV Protection Key</label><input type="password" id="cardCvv" placeholder="***"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-main" style="background: var(--accent);">Authorize Payment Settlement</button>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        // Core State Engine Store Properties
+        let userProfile = null;
+        let activeCart = [];
+        let runningCheckoutItem = null; 
+        
+        const hexColors = ["#ffffff", "#f87171", "#60a5fa", "#34d399", "#fbbf24", "#111827", "#a78bfa", "#ec4899"];
+        let selectedShirtColor = "#ffffff";
+        let selectedTextColor = "#111827";
+        let selectedModel = "crewneck";
+        let selectedSize = "L";
+        let selectedPaymentChannel = null;
+
+        // Custom Layout Paths for Model Selector Vector Simulation Maps
+        const modelVectors = {
+            crewneck: "M 20,10 L 32,2 L 42,12 C 45,10 55,10 58,12 L 68,2 L 80,10 L 76,28 L 70,27 L 70,95 L 30,95 L 30,27 L 24,28 Z",
+            vneck: "M 20,10 L 32,2 L 45,18 L 55,18 L 68,2 L 80,10 L 76,28 L 70,27 L 70,95 L 30,95 L 30,27 L 24,28 Z",
+            hoodie: "M 20,20 L 30,15 L 40,2 L 60,2 L 70,15 L 80,20 L 76,35 L 70,33 L 70,95 L 30,95 L 30,33 L 24,35 Z",
+            oversized: "M 15,15 L 30,5 L 42,12 C 45,10 55,10 58,12 L 70,5 L 85,15 L 80,35 L 74,33 L 74,98 L 26,98 L 26,33 L 20,35 Z"
+        };
+
+        window.onload = function() {
+            buildColorPickers();
+            updateDesign();
+        };
+
+        function toggleAuthForms(showSignIn) {
+            document.getElementById('signUpForm').style.display = showSignIn ? 'none' : 'block';
+            document.getElementById('signInForm').style.display = showSignIn ? 'block' : 'none';
+        }
+
+        function buildColorPickers() {
+            const sc = document.getElementById('shirtColors');
+            const tc = document.getElementById('textColors');
+            
+            hexColors.forEach((color, idx) => {
+                let swatch1 = document.createElement('div');
+                swatch1.className = `color-swatch ${idx===0?'active':''}`;
+                swatch1.style.backgroundColor = color;
+                swatch1.onclick = () => {
+                    document.querySelectorAll('#shirtColors .color-swatch').forEach(s => s.classList.remove('active'));
+                    swatch1.classList.add('active');
+                    selectedShirtColor = color;
+                    updateDesign();
+                };
+                sc.appendChild(swatch1);
+
+                let swatch2 = document.createElement('div');
+                swatch2.className = `color-swatch ${idx===5?'active':''}`;
+                swatch2.style.backgroundColor = color;
+                swatch2.onclick = () => {
+                    document.querySelectorAll('#textColors .color-swatch').forEach(s => s.classList.remove('active'));
+                    swatch2.classList.add('active');
+                    selectedTextColor = color;
+                    updateDesign();
+                };
+                tc.appendChild(swatch2);
+            });
+        }
+
+        // State UI Updates
+        function setModel(modelName) {
+            selectedModel = modelName;
+            document.querySelectorAll('#modelSelectors .selector-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Map the simple key names to active UI element text indicators safely
+            const targetBtn = Array.from(document.querySelectorAll('#modelSelectors .selector-btn')).find(btn => {
+                const text = btn.textContent.toLowerCase();
+                if (modelName === 'crewneck') return text.includes('crew');
+                if (modelName === 'vneck') return text.includes('v-neck');
+                if (modelName === 'hoodie') return text.includes('hoodie');
+                if (modelName === 'oversized') return text.includes('oversized');
+                return false;
+            });
+
+            if(targetBtn) targetBtn.classList.add('active');
+            document.getElementById('modelPath').setAttribute('d', modelVectors[modelName]);
+        }
+
+        function setSize(sizeValue) {
+            selectedSize = sizeValue;
+            document.querySelectorAll('#sizeSelectors .selector-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.textContent.trim() === sizeValue) btn.classList.add('active');
+            });
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(viewId).classList.add('active');
+            if(viewId === 'studioView') document.getElementById('navStudio').classList.add('active');
+            if(viewId === 'cartView') document.getElementById('navCart').classList.add('active');
+        }
+
+        function handleAuth(event, type) {
+            event.preventDefault();
+            if(type === 'signup') {
+                userProfile = {
+                    firstName: document.getElementById('regFirst').value,
+                    lastName: document.getElementById('regLast').value,
+                    email: document.getElementById('regEmail').value,
+                    phone: document.getElementById('regPhone').value,
+                    gender: document.querySelector('input[name="gender"]:checked').value
+                };
+            } else {
+                userProfile = { firstName: "Verified", lastName: "Merchant", email: document.getElementById('loginEmail').value, phone: "Simulated System Connect", gender: "Standard Set" };
+            }
+            
+            document.getElementById('authView').classList.remove('active');
+            document.getElementById('navLinks').style.display = 'flex';
+            renderProfile();
+            switchView('studioView');
+        }
+
+        function logout() {
+            userProfile = null; activeCart = []; runningCheckoutItem = null;
+            updateCartCounter();
+            document.getElementById('navLinks').style.display = 'none';
+            toggleAuthForms(false);
+            switchView('authView');
+        }
+
+        function updateDesign() {
+            const mockupSvg = document.getElementById('tshirtSvgShape');
+            const txtDisplay = document.getElementById('canvasTextDisplay');
+            const subtxtDisplay = document.getElementById('canvasSubtextDisplay');
+            const graphicDisplay = document.getElementById('canvasGraphicDisplay');
+            const fontChoice = document.getElementById('fontSelect').value;
+            
+            mockupSvg.style.fill = selectedShirtColor;
+            
+            txtDisplay.textContent = document.getElementById('customTextInput').value;
+            txtDisplay.style.fontFamily = fontChoice;
+            txtDisplay.style.color = selectedTextColor;
+
+            subtxtDisplay.textContent = document.getElementById('customSubtextInput').value;
+            subtxtDisplay.style.fontFamily = fontChoice;
+            subtxtDisplay.style.color = selectedTextColor;
+
+            const chosenGraphic = document.getElementById('designSelect').value;
+            if(chosenGraphic === 'none') {
+                graphicDisplay.style.display = 'none';
+            } else {
+                graphicDisplay.style.display = 'block';
+                graphicDisplay.textContent = chosenGraphic;
+            }
+        }
+
+        function compileCurrentDesignObject() {
+            return {
+                id: Date.now(),
+                model: selectedModel,
+                size: selectedSize,
+                shirtColor: selectedShirtColor,
+                textColor: selectedTextColor,
+                text: document.getElementById('customTextInput').value,
+                subtext: document.getElementById('customSubtextInput').value,
+                font: document.getElementById('fontSelect').value,
+                graphic: document.getElementById('designSelect').value,
+                price: selectedModel === 'hoodie' ? 34.99 : 24.99
+            };
+        }
+
+        function addToCart() {
+            activeCart.push(compileCurrentDesignObject());
+            updateCartCounter();
+            renderCartItems();
+            switchView('cartView');
+        }
+
+        function directPayNow() {
+            runningCheckoutItem = compileCurrentDesignObject();
+            switchView('checkoutView');
+        }
+
+        function updateCartCounter() {
+            document.getElementById('cartCount').textContent = activeCart.length;
+        }
+
+        function renderProfile() {
+            if(!userProfile) return;
+            document.getElementById('profileDisplay').innerHTML = `
+                <p><strong>Name Mapping:</strong> ${userProfile.firstName} ${userProfile.lastName}</p>
+                <p><strong>Security Email Address:</strong> ${userProfile.email}</p>
+                <p><strong>Mobile String:</strong> ${userProfile.phone}</p>
+                <p><strong>Gender ID:</strong> ${userProfile.gender}</p>
+            `;
+        }
+
+        function renderCartItems() {
+            const container = document.getElementById('cartContainer');
+            container.innerHTML = '';
+            let totalSum = 0;
+
+            if(activeCart.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted);">Your profile configuration space is currently empty.</p>';
+                document.getElementById('summaryTotal').textContent = "$0.00";
+                document.getElementById('checkoutBtn').disabled = true;
+                return;
+            }
+
+            activeCart.forEach(item => {
+                totalSum += item.price;
+                const row = document.createElement('div');
+                row.className = 'cart-item';
+                row.innerHTML = `
+                    <div class="cart-item-info">
+                        <div class="mini-preview" style="background-color: ${item.shirtColor}; color: ${item.textColor};">
+                           <span style="font-size:0.5rem; text-transform:uppercase;">${item.model.substring(0,4)}</span>
+                           <span style="font-size:0.7rem;">${item.size}</span>
+                        </div>
+                        <div>
+                            <p style="font-weight:600;">"${item.text || 'Untitled'}" Configured Matrix</p>
+                            <p style="font-size:0.8rem; color: var(--text-muted);">Size: ${item.size} | Model: ${item.model} | Typography: ${item.font.split(',')[0]}</p>
+                        </div>
+                    </div>
+                    <div style="font-weight: bold; color: var(--accent);">$${item.price}</div>
+                `;
+                container.appendChild(row);
+            });
+
+            document.getElementById('summaryTotal').textContent = `$${totalSum.toFixed(2)}`;
+            document.getElementById('checkoutBtn').disabled = false;
+            runningCheckoutItem = null; 
+        }
+
+        function selectPayment(channel) {
+            selectedPaymentChannel = channel;
+            document.querySelectorAll('.pay-method-opt').forEach(opt => opt.classList.remove('selected'));
+            document.getElementById('upiField').classList.remove('active');
+            document.getElementById('cardFields').classList.remove('active');
+
+            if(channel === 'paytm' || channel === 'phonepe') {
+                document.getElementById(channel === 'paytm' ? 'payPaytm' : 'payPhonePe').classList.add('selected');
+                document.getElementById('upiField').classList.add('active');
+            } else if(channel === 'card') {
+                document.getElementById('payCard').classList.add('selected');
+                document.getElementById('cardFields').classList.add('active');
+            }
+        }
+
+        function processPayment(event) {
+            event.preventDefault();
+            if(!selectedPaymentChannel) {
+                alert('Select secure validation verification path route.');
+                return;
+            }
+            alert('Financial clearance processing verified successfully! Order added to print stack.');
+            if(!runningCheckoutItem) { activeCart = []; updateCartCounter(); renderCartItems(); }
+            runningCheckoutItem = null;
+            switchView('studioView');
+        }
+    </script>
+</body>
+</html>
